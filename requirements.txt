@@ -1,0 +1,66 @@
+# Google ADK Framework (Core)
+google-adk
+google-generativeai
+google-ai-generativelanguage
+google-api-core
+google-auth
+adk
+
+# Local AI Development
+ollama
+
+# Major Cloud Providers
+openai
+anthropic
+
+# Additional Cloud Providers
+groq
+together
+mistralai
+cohere
+
+# Multi-Provider Interface & Routing
+litellm
+
+# Azure OpenAI
+openai
+azure-identity
+langchain_openai
+
+# Environment & Configuration Management
+python-dotenv
+pydantic
+pydantic-settings
+
+# HTTP & API Clients
+requests
+httpx
+aiohttp
+
+# Development & Jupyter Environment
+jupyter
+ipykernel
+
+# Data Processing
+pandas
+numpy
+
+# Logging & Output Enhancement
+rich
+
+# Security & Authentication
+cryptography
+
+# Token Counting & Cost Management
+tiktoken
+
+# Additional Utilities
+typing-extensions
+
+# Testing
+pytest
+pytest-asyncio
+streamlit
+
+sentence-transformers
+faiss-cpu
