@@ -44,6 +44,7 @@ ipykernel
 # Data Processing
 pandas
 numpy
+matplotlib
 
 # Logging & Output Enhancement
 rich
