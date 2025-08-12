@@ -6,7 +6,7 @@ body {
     height: 60vh;
     overflow-y: auto;
     display: flex;
-    flex-direction: column-reverse;
+    flex-direction: column;
 }
 
 #chat-window {
@@ -21,6 +21,7 @@ body {
     border-radius: 15px;
     max-width: 80%;
     word-wrap: break-word;
+    line-height: 1.4;
 }
 
 .user-message {
