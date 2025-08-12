@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card bg-body-tertiary">
+            <div class="card-header">
+                <h3>AI Chat</h3>
+            </div>
+            <div class="card-body" id="chat-window-container">
+                <div id="chat-window">
+                    <div class="message ai-message">
+                        <p>Hello! How can I assist you today?</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="mb-3">
+                    <div class="row g-2">
+                        <div class="col">
+                            <label for="user-tier" class="form-label">User Tier</label>
+                            <select class="form-select" id="user-tier">
+                                <option value="free">Free</option>
+                                <option value="premium" selected>Premium</option>
+                                <option value="enterprise">Enterprise</option>
+                            </select>
+                        </div>
+                        <div class="col">
+                            <label for="severity-level" class="form-label">Severity</label>
+                            <select class="form-select" id="severity-level">
+                                <option value="low" selected>Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <form id="chat-form">
+                    <div class="input-group">
+                        <input type="text" id="user-input" class="form-control" placeholder="Type your message..." autocomplete="off" required>
+                        <button class="btn btn-primary" type="submit" id="send-btn">
+                            <i class="bi bi-send"></i> Send
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
