@@ -10,11 +10,10 @@ from agent import EnterpriseAgent
 load_dotenv()
 
 # Add this check to debug your .env file
-print("--- Checking Environment Variables ---")
+print("Checking Environment Variables ")
 print(f"AZURE_API_KEY loaded: {bool(os.getenv('AZURE_API_KEY'))}")
 print(f"AZURE_OPENAI_ENDPOINT loaded: {bool(os.getenv('AZURE_OPENAI_ENDPOINT'))}")
 print(f"AZURE_OPENAI_CHAT_DEPLOYMENT_NAME loaded: {bool(os.getenv('AZURE_OPENAI_CHAT_DEPLOYMENT_NAME'))}")
-print("------------------------------------")
 
 
 # Initialize Flask app
@@ -65,14 +64,43 @@ def chat():
 @app.route('/api/dashboard_data')
 def dashboard_data():
     """API endpoint to provide synthetic data for the dashboard."""
-    # This function remains the same
-    labels = [(datetime.now() - timedelta(days=i)).strftime('%b %d') for i in range(6, -1, -1)]
-    total_requests = [random.randint(800, 1500) for _ in range(7)]
-    avg_response_time = [round(random.uniform(0.5, 2.5), 2) for _ in range(7)]
-    tier_distribution = {'Free': random.randint(5000, 8000), 'Premium': random.randint(2000, 4000), 'Enterprise': random.randint(500, 1500)}
-    severity_distribution = {'Low': random.randint(6000, 9000), 'Medium': random.randint(1500, 3000), 'High': random.randint(200, 800)}
-    data = {'time_series': {'labels': labels, 'total_requests': total_requests, 'avg_response_time': avg_response_time}, 'tier_distribution': tier_distribution, 'severity_distribution': severity_distribution}
-    return jsonify(data)
+    try:
+        # Generate synthetic data for the last 7 days
+        labels = [(datetime.now() - timedelta(days=i)).strftime('%b %d') for i in range(6, -1, -1)]
+        
+        # Generate data points
+        total_requests = [random.randint(800, 1500) for _ in range(7)]
+        avg_response_time = [round(random.uniform(0.5, 2.5), 2) for _ in range(7)]
+        
+        # Data for the pie chart
+        tier_distribution = {
+            'Free': random.randint(5000, 8000),
+            'Premium': random.randint(2000, 4000),
+            'Enterprise': random.randint(500, 1500)
+        }
+
+        # Data for the severity bar chart
+        severity_distribution = {
+            'Low': random.randint(6000, 9000),
+            'Medium': random.randint(1500, 3000),
+            'High': random.randint(200, 800)
+        }
+
+        # Consolidate into a single JSON response
+        data = {
+            'time_series': {
+                'labels': labels,
+                'total_requests': total_requests,
+                'avg_response_time': avg_response_time
+            },
+            'tier_distribution': tier_distribution,
+            'severity_distribution': severity_distribution
+        }
+        
+        return jsonify(data)
+    except Exception as e:
+        print(f"Error in /api/dashboard_data: {e}")
+        return jsonify({"error": "Failed to generate dashboard data"}), 500
 
 
 if __name__ == '__main__':

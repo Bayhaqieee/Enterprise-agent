@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // CHATBOT PAGE LOGIC
     const chatForm = document.getElementById('chat-form');
     if (chatForm) {
-        let conversationHistory = [];
+        let conversationHistory = []; // The "memory" of the chat
 
         const userInput = document.getElementById('user-input');
         const chatWindow = document.getElementById('chat-window');
@@ -16,10 +16,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const query = userInput.value.trim();
             if (!query) return;
 
-            // Add user message to history and display it
-            conversationHistory.push({ role: 'user', content: query });
-            appendMessage(query, 'user');
+            // Display user message (as plain text)
+            appendMessage(query, 'user', false); // 'false' for not parsing markdown
             userInput.value = '';
+            
+            // Add user message to history
+            conversationHistory.push({ role: 'user', content: query });
             showTypingIndicator(true);
 
             const userTier = document.getElementById('user-tier').value;
@@ -33,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         query: query,
                         tier: userTier,
                         severity: severityLevel,
-                        history: conversationHistory // Send the whole history
+                        history: conversationHistory
                     }),
                 });
 
@@ -41,13 +43,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const data = await response.json();
                 
-                // Add AI response to history and display it
+                // Add AI response to history and display it (parsed as markdown)
                 conversationHistory.push({ role: 'assistant', content: data.response });
-                appendMessage(data.response, 'ai');
+                appendMessage(data.response, 'ai', true); // 'true' to parse markdown
 
             } catch (error) {
                 console.error('Error fetching chat response:', error);
-                appendMessage('Sorry, the server responded with an error. Please check the console.', 'ai');
+                appendMessage('Sorry, the server responded with an error. Please check the console.', 'ai', false);
             } finally {
                 showTypingIndicator(false);
             }
@@ -56,22 +58,29 @@ document.addEventListener('DOMContentLoaded', () => {
         // Clear Chat handler
         clearChatBtn.addEventListener('click', () => {
             conversationHistory = [];
-            chatWindow.innerHTML = `
-                <div class="message ai-message">
-                    <p>Conversation cleared. How can I help you?</p>
-                </div>`;
+            chatWindow.innerHTML = ''; // Clear the window
+            appendMessage("Conversation cleared. How can I help you?", 'ai', false);
             scrollToBottom();
         });
 
-        function appendMessage(text, sender) {
+        function appendMessage(text, sender, parseMarkdown) {
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message', `${sender}-message`);
             
-            const p = document.createElement('p');
-            p.textContent = text;
-            messageDiv.appendChild(p);
-
-            // Append the new message to the end
+            if (parseMarkdown) {
+                // Use marked.js to convert Markdown to HTML
+                messageDiv.innerHTML = marked.parse(text);
+                // Apply syntax highlighting to any code blocks
+                messageDiv.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightElement(block);
+                });
+            } else {
+                // For user messages, just display plain text
+                const p = document.createElement('p');
+                p.textContent = text;
+                messageDiv.appendChild(p);
+            }
+            
             chatWindow.appendChild(messageDiv);
             scrollToBottom();
         }
@@ -98,7 +107,80 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // DASHBOARD PAGE LOGIC
-    if (document.getElementById('requests-chart')) {
-        // This logic remains the same
+    const requestsChart = document.getElementById('requests-chart');
+    if (requestsChart) {
+        fetchDashboardData();
+    }
+
+    async function fetchDashboardData() {
+        try {
+            const response = await fetch('/api/dashboard_data');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+            const data = await response.json();
+            renderCharts(data);
+        } catch (error) {
+            console.error('Error fetching dashboard data:', error);
+            // Optionally display an error message on the dashboard
+            requestsChart.parentElement.innerHTML = '<div class="alert alert-danger">Could not load dashboard data.</div>';
+        }
+    }
+
+    function renderCharts(data) {
+        // Time Series Chart (Requests, Response Time, Success Rate)
+        new Chart(document.getElementById('requests-chart'), {
+            type: 'line',
+            data: {
+                labels: data.time_series.labels,
+                datasets: [{
+                    label: 'Total Requests',
+                    data: data.time_series.total_requests,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    yAxisID: 'y',
+                    tension: 0.3
+                }, {
+                    label: 'Avg Response Time (s)',
+                    data: data.time_series.avg_response_time,
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                    yAxisID: 'y1',
+                    tension: 0.3
+                }]
+            },
+            options: {
+                scales: {
+                    y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Requests' } },
+                    y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Seconds' }, grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+
+        // Tier Distribution Pie Chart
+        new Chart(document.getElementById('tier-chart'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(data.tier_distribution),
+                datasets: [{
+                    label: 'User Tiers',
+                    data: Object.values(data.tier_distribution),
+                    backgroundColor: ['#198754', '#ffc107', '#0dcaf0']
+                }]
+            }
+        });
+
+        // Severity Distribution Bar Chart
+        new Chart(document.getElementById('severity-chart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(data.severity_distribution),
+                datasets: [{
+                    label: 'Request Count by Severity',
+                    data: Object.values(data.severity_distribution),
+                    backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+                }]
+            },
+            options: { indexAxis: 'y' }
+        });
     }
 });
